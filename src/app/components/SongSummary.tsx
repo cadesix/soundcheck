@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './SongSummary.module.css';
 
 interface SongSummaryProps {
   summary?: string | null;
@@ -7,9 +8,8 @@ interface SongSummaryProps {
 const SongSummary: React.FC<SongSummaryProps> = ({ summary }) => {
   if (!summary) return null;
   return (
-    <div className="song-summary-container">
-      <div className="song-summary-title">Video Trend Summary</div>
-      <div className="song-summary-content p1">{summary}</div>
+    <div className={styles['song-summary-container']}>
+      <div className={styles['song-summary-content'] + ' p1'}>{summary}</div>
     </div>
   );
 };

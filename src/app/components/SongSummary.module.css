@@ -1,17 +1,11 @@
 .song-summary-container {
   margin-bottom: 32px;
-  background: #f8fafc;
-  border: 1.5px solid #ececf1;
+  background: var(--color-white);
+  border: 1px solid var(--color-grey-utility);
   border-radius: 10px;
   padding: 1.5rem 2rem;
 }
-.song-summary-title {
-  font-weight: 600;
-  font-size: 1.15em;
-  color: #18181b;
-  margin-bottom: 1em;
-}
+
 .song-summary-content {
-  color: #18181b;
-  font-size: 1.05em;
+  font: var(--text-p1);
 } 

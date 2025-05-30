@@ -39,4 +39,34 @@
 }
 .data-table-name {
   font-weight: 500;
+}
+.data-table-th {
+  color: #888;
+  font-weight: 500;
+  font-size: 1em;
+  border-bottom: 1px solid #ececf1;
+  text-align: left;
+  padding: 0.5em 0;
+}
+.data-table-td {
+  padding: 0.5em 0;
+  color: #18181b;
+}
+.data-table-tr {
+  border-bottom: 1px solid #f3f4f6;
+}
+.data-table-avatar-skeleton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ececf1;
+}
+.data-table-text-skeleton {
+  width: 120px;
+  height: 18px;
+  background: #ececf1;
+  border-radius: 4px;
+}
+.data-table-row-clickable:hover {
+  background: #f3f4f6;
 } 

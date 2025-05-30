@@ -37,7 +37,13 @@ export default function Sidebar() {
             <li key={item.href} className={styles.navItem}>
               <Link
                 href={item.href}
-                className={`${styles.link} h2${pathname === item.href ? ' ' + styles.active : ''}`}
+                className={`${styles.link} h2${
+                  (item.href === '/songs' && pathname.startsWith('/songs'))
+                    ? ' ' + styles.active
+                    : pathname === item.href && item.href !== '/songs'
+                      ? ' ' + styles.active
+                      : ''
+                }`}
               >
                 {item.label}
               </Link>

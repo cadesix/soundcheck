@@ -13,9 +13,10 @@ interface TableProps<T> {
   data: T[];
   title?: string;
   className?: string;
+  onRowClick?: (row: T) => void;
 }
 
-function Table<T extends { id: string | number } = any>({ columns, data, title, className }: TableProps<T>) {
+function Table<T extends { id: string | number } = any>({ columns, data, title, className, onRowClick }: TableProps<T>) {
   if (!data.length) return null;
   return (
     <>
@@ -31,7 +32,12 @@ function Table<T extends { id: string | number } = any>({ columns, data, title, 
           </thead>
           <tbody>
             {data.map(row => (
-              <tr key={row.id}>
+              <tr
+                key={row.id}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={onRowClick ? styles['data-table-row-clickable'] : undefined}
+                style={onRowClick ? { cursor: 'pointer' } : undefined}
+              >
                 {columns.map((col, idx) => (
                   <td key={idx} className={col.className}>
                     {col.render ? col.render(row) : String(row[col.accessor as keyof T] ?? '—')}

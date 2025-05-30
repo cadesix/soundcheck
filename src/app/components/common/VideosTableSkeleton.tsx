@@ -1,20 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
+import TableHeader from '../TableHeader';
+import styles from '../VideoTable.module.css';
 
-const VideosTableSkeleton: React.FC = () => (
-  <div style={{ background: '#fff', border: '1.5px solid #ececf1', borderRadius: 10, padding: '1.5rem 2rem', width: '100%', marginBottom: 16 }}>
-    <div style={{ height: 24, width: 120, background: '#ececf1', borderRadius: 6, marginBottom: 24 }} />
-    {[...Array(4)].map((_, i) => (
-      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 18 }}>
-        <div style={{ width: 54, height: 96, borderRadius: 6, background: '#ececf1' }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ width: 100, height: 16, background: '#ececf1', borderRadius: 4, marginBottom: 8 }} />
-          <div style={{ width: 60, height: 14, background: '#ececf1', borderRadius: 4, marginBottom: 6 }} />
-          <div style={{ width: 80, height: 14, background: '#ececf1', borderRadius: 4 }} />
-        </div>
-        <div style={{ width: 80, height: 18, background: '#ececf1', borderRadius: 4 }} />
+const sortOptions = [
+  { value: 'top', label: 'Top' },
+  { value: 'recent', label: 'Recent' },
+];
+const timeOptions = [
+  { value: 'all', label: 'All Time' },
+  { value: '7d', label: 'Last 7 Days' },
+  { value: '30d', label: 'Last 30 Days' },
+];
+
+const VideosTableSkeleton: React.FC = () => {
+  const [sort] = useState('top');
+  const [time] = useState('all');
+  return (
+    <div style={{ width: '100%', marginBottom: '2rem' }}>
+      <TableHeader
+        title="Videos"
+        filter1={{ value: sort, onChange: () => {}, options: sortOptions }}
+        filter2={{ value: time, onChange: () => {}, options: timeOptions }}
+      />
+      <div className={styles['video-table-container']}>
+        {[...Array(4)].map((_, i) => (
+          <div className={styles['video-row']} key={i}>
+            <div className={styles['video-thumbnail']} style={{ background: '#ececf1' }} />
+            <div className={styles['video-info-col']}>
+              <div className={styles['video-title-skeleton']} />
+              <div className={styles['video-meta-skeleton']} />
+              <div className={styles['video-meta-skeleton']} style={{ width: 80 }} />
+            </div>
+            <div className={styles['video-viewcount-skeleton']} />
+          </div>
+        ))}
       </div>
-    ))}
-  </div>
-);
+    </div>
+  );
+};
 
 export default VideosTableSkeleton; 

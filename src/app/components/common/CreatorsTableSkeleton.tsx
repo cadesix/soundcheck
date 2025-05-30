@@ -1,17 +1,36 @@
 import React from 'react';
+import TableHeader from '../TableHeader';
+import styles from '../Table.module.css';
 
 const CreatorsTableSkeleton: React.FC = () => (
-  <div style={{ background: '#fff', border: '1.5px solid #ececf1', borderRadius: 10, padding: '1.5rem 2rem', width: '100%', marginBottom: 16 }}>
-    <div style={{ height: 24, width: 180, background: '#ececf1', borderRadius: 6, marginBottom: 24 }} />
-    {[...Array(4)].map((_, i) => (
-      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#ececf1' }} />
-        <div style={{ width: 120, height: 18, background: '#ececf1', borderRadius: 4 }} />
-        <div style={{ width: 60, height: 18, background: '#ececf1', borderRadius: 4, marginLeft: 16 }} />
-        <div style={{ width: 90, height: 18, background: '#ececf1', borderRadius: 4, marginLeft: 16 }} />
-      </div>
-    ))}
-  </div>
+  <>
+    <TableHeader title="Tracked Creators" />
+    <div className={styles['data-table-container']}>
+      <table className={styles['data-table']}>
+        <thead>
+          <tr>
+            <th className={styles['data-table-name']}>Name</th>
+            <th className={styles['data-table-th']}># Videos</th>
+            <th className={styles['data-table-th']}>Total Impressions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[...Array(4)].map((_, i) => (
+            <tr className={styles['data-table-tr']} key={i}>
+              <td className={styles['data-table-td']}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div className={styles['data-table-avatar-skeleton']} />
+                  <div className={styles['data-table-text-skeleton']} />
+                </span>
+              </td>
+              <td className={styles['data-table-td']}><div className={styles['data-table-text-skeleton']} style={{ width: 60 }} /></td>
+              <td className={styles['data-table-td']}><div className={styles['data-table-text-skeleton']} style={{ width: 90 }} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
 );
 
 export default CreatorsTableSkeleton; 

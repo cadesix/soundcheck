@@ -10,6 +10,7 @@ import { ResourceState } from '../types/resource';
 import ResourceWrapper from '../components/common/ResourceWrapper';
 import CreatorsTableSkeleton from '../components/common/CreatorsTableSkeleton';
 import VideosTableSkeleton from '../components/common/VideosTableSkeleton';
+import ImpressionsStatsSkeleton from '../components/common/ImpressionsStatsSkeleton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -167,10 +168,14 @@ export default function ClippersPage() {
         placeholder="Paste TikTok creator URL here..."
       />
       <div>
-        <ImpressionsStats
-          totalImpressions={totalImpressions}
-          impressionsThisWeek={impressionsThisWeek}
-        />
+        {videosResource.status === 'loaded' ? (
+          <ImpressionsStats
+            totalImpressions={totalImpressions}
+            impressionsThisWeek={impressionsThisWeek}
+          />
+        ) : (
+          <ImpressionsStatsSkeleton />
+        )}
         <ResourceWrapper
           resource={creatorsResource}
           loading={<CreatorsTableSkeleton />}

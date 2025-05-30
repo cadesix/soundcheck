@@ -71,4 +71,25 @@
   font-size: 1.08em;
   min-width: 80px;
   text-align: right;
+}
+.video-title-skeleton {
+  width: 100px;
+  height: 16px;
+  background: #ececf1;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.video-meta-skeleton {
+  width: 60px;
+  height: 14px;
+  background: #ececf1;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.video-viewcount-skeleton {
+  margin-left: auto;
+  width: 80px;
+  height: 18px;
+  background: #ececf1;
+  border-radius: 4px;
 } 
