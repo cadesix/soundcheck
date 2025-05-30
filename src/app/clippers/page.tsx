@@ -1,9 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import InputModal from "../components/InputModal";
 import ImpressionsStats from "../components/ImpressionsStats";
 import VideoTable from "../components/VideoTable";
+import TrackedCreatorsTable from '../components/TrackedCreatorsTable';
+import TertiaryButton from '../components/TertiaryButton';
+import { ResourceState } from '../types/resource';
+import ResourceWrapper from '../components/common/ResourceWrapper';
+import CreatorsTableSkeleton from '../components/common/CreatorsTableSkeleton';
+import VideosTableSkeleton from '../components/common/VideosTableSkeleton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,38 +21,49 @@ export default function ClippersPage() {
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [creators, setCreators] = useState<any[]>([]);
-  const [fetching, setFetching] = useState(true);
-  const [videosByCreator, setVideosByCreator] = useState<Record<string, any[]>>({});
-  const [videosLoading, setVideosLoading] = useState<Record<string, boolean>>({});
+  const [creatorsResource, setCreatorsResource] = useState<ResourceState<any[]>>({ status: 'loading' });
+  const [videosResource, setVideosResource] = useState<ResourceState<any[]>>({ status: 'loading' });
+  const [pendingLinks, setPendingLinks] = useState<string[]>([]);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchCreators = async () => {
-    setFetching(true);
+    setCreatorsResource({ status: 'loading' });
     const { data, error } = await supabase
       .from("creators")
-      .select("id, name, profile_url")
+      .select("id, name, profile_url, image_url")
       .eq("is_tracked", true);
-    if (!error) setCreators(data || []);
-    setFetching(false);
+    if (error) {
+      setCreatorsResource({ status: 'error', error: error.message });
+    } else if (!data || data.length === 0) {
+      setCreatorsResource({ status: 'empty' });
+    } else {
+      setCreatorsResource({ status: 'loaded', data });
+    }
   };
 
-  // Fetch videos for each creator
   const fetchVideosForCreators = async (creatorsList: any[]) => {
-    const newVideosByCreator: Record<string, any[]> = {};
-    const newVideosLoading: Record<string, boolean> = {};
+    setVideosResource({ status: 'loading' });
+    const allVideos: any[] = [];
     await Promise.all(
       creatorsList.map(async (creator) => {
-        newVideosLoading[creator.id] = true;
         const { data, error } = await supabase
           .from("videos")
-          .select("*")
+          .select("*, creator:creator_id(id, name, profile_url), thumbnail_url")
           .eq("creator_id", creator.id);
-        newVideosByCreator[creator.id] = data || [];
-        newVideosLoading[creator.id] = false;
+        if (data) {
+          allVideos.push(...data.map((video: any) => ({
+            ...video,
+            thumbnail: video.thumbnail_url,
+            creator: video.creator,
+          })));
+        }
       })
     );
-    setVideosByCreator(newVideosByCreator);
-    setVideosLoading(newVideosLoading);
+    if (allVideos.length === 0) {
+      setVideosResource({ status: 'empty' });
+    } else {
+      setVideosResource({ status: 'loaded', data: allVideos });
+    }
   };
 
   useEffect(() => {
@@ -55,17 +72,18 @@ export default function ClippersPage() {
   }, []);
 
   useEffect(() => {
-    if (creators.length > 0) {
-      fetchVideosForCreators(creators);
-    } else {
-      setVideosByCreator({});
+    if (creatorsResource.status === 'loaded') {
+      fetchVideosForCreators(creatorsResource.data);
+    } else if (creatorsResource.status === 'empty' || creatorsResource.status === 'error') {
+      setVideosResource({ status: 'empty' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [creators]);
+  }, [creatorsResource]);
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
+    setPendingLinks(prev => [...prev, inputValue]);
     const { error } = await supabase
       .from("user_input_links")
       .insert([{ url: inputValue, type: "tiktok_link" }]);
@@ -75,9 +93,33 @@ export default function ClippersPage() {
     } else {
       setModalOpen(false);
       setInputValue("");
-      fetchCreators();
+      // fetchCreators(); // Don't fetch immediately, wait for polling
     }
   };
+
+  // Polling logic for pending links
+  useEffect(() => {
+    if (pendingLinks.length === 0) {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+      return;
+    }
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    pollingRef.current = setInterval(async () => {
+      // Only poll for links in pendingLinks
+      const { data: creatorsData } = await supabase
+        .from('creators')
+        .select('*')
+        .in('profile_url', pendingLinks);
+      if (creatorsData && creatorsData.length > 0) {
+        setPendingLinks(prev => prev.filter(link => !creatorsData.some(c => c.profile_url === link)));
+        // Refresh creators/videos data
+        fetchCreators();
+      }
+    }, 5000);
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, [pendingLinks]);
 
   const handleOpen = () => {
     setModalOpen(true);
@@ -97,16 +139,14 @@ export default function ClippersPage() {
     let impressionsThisWeek = 0;
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    Object.values(videosByCreator).forEach((videos: any[]) => {
-      totalImpressions += videos.reduce((sum, v) => sum + (v.num_views || 0), 0);
-      impressionsThisWeek += videos.reduce(
-        (sum, v) =>
-          v.date_posted && new Date(v.date_posted) >= oneWeekAgo
-            ? sum + (v.num_views || 0)
-            : sum,
-        0
-      );
-    });
+    if (videosResource.status === 'loaded') {
+      videosResource.data.forEach((v: any) => {
+        totalImpressions += v.num_views || 0;
+        if (v.date_posted && new Date(v.date_posted) >= oneWeekAgo) {
+          impressionsThisWeek += v.num_views || 0;
+        }
+      });
+    }
     return { totalImpressions, impressionsThisWeek };
   };
 
@@ -115,12 +155,6 @@ export default function ClippersPage() {
   return (
     <main className="container">
       <h1 className="h1" style={{ marginBottom: 24 }}>Clippers</h1>
-      <button
-        onClick={handleOpen}
-        style={{ padding: "10px 24px", borderRadius: 8, background: "#2563eb", color: "#fff", fontWeight: 500, border: "none", cursor: "pointer", fontSize: 16 }}
-      >
-        Add TikTok Creator
-      </button>
       <InputModal
         open={modalOpen}
         onClose={handleClose}
@@ -132,56 +166,51 @@ export default function ClippersPage() {
         label="Submit a TikTok Creator URL"
         placeholder="Paste TikTok creator URL here..."
       />
-      <div style={{ marginTop: 40 }}>
+      <div>
         <ImpressionsStats
           totalImpressions={totalImpressions}
           impressionsThisWeek={impressionsThisWeek}
         />
-        <h2 className="h2" style={{ margin: '32px 0 16px 0' }}>Tracked Creators</h2>
-        {fetching ? (
-          <div className="loading">Loading creators...</div>
-        ) : creators.length === 0 ? (
-          <div>No tracked creators found.</div>
-        ) : (
-          <table style={{ width: '100%', marginBottom: 40, background: '#fff', border: '1.5px solid #ececf1', borderRadius: 10 }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: 12 }}>Name</th>
-                <th style={{ textAlign: 'left', padding: 12 }}>Profile</th>
-                <th style={{ textAlign: 'left', padding: 12 }}># Videos</th>
-                <th style={{ textAlign: 'left', padding: 12 }}>Total Impressions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {creators.map(creator => {
-                const videos = videosByCreator[creator.id] || [];
-                const creatorImpressions = videos.reduce((sum, v) => sum + (v.num_views || 0), 0);
-                return (
-                  <tr key={creator.id}>
-                    <td style={{ padding: 12 }}>{creator.name}</td>
-                    <td style={{ padding: 12 }}>
-                      <a href={creator.profile_url} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 500 }}>Profile</a>
-                    </td>
-                    <td style={{ padding: 12 }}>{videos.length}</td>
-                    <td style={{ padding: 12 }}>{creatorImpressions.toLocaleString()}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-        {creators.map(creator => {
-          const videos = videosByCreator[creator.id] || [];
-          return (
-            <div key={creator.id} style={{ marginBottom: 48 }}>
-              {videosLoading[creator.id] ? (
-                <div className="loading">Loading videos...</div>
-              ) : (
-                <VideoTable videos={videos} />
-              )}
-            </div>
-          );
-        })}
+        <ResourceWrapper
+          resource={creatorsResource}
+          loading={<CreatorsTableSkeleton />}
+          empty={<div>No tracked creators found.</div>}
+          error={<div className="error">Failed to load creators.</div>}
+        >{(creators) => <>
+          <TrackedCreatorsTable
+            creators={[
+              ...creators.map((creator: any) => {
+                // videosByCreator is not used anymore, so just pass 0 for videos
+                return {
+                  id: creator.id,
+                  name: creator.name,
+                  profile_url: creator.profile_url,
+                  image_url: creator.image_url || null,
+                  num_videos: 0,
+                  total_impressions: 0,
+                };
+              }),
+              ...pendingLinks.map(link => ({
+                id: link,
+                name: `Processing…`,
+                profile_url: link,
+                image_url: null,
+                num_videos: 0,
+                total_impressions: 0,
+                isPending: true,
+              }))
+            ]}
+          />
+          <TertiaryButton onClick={handleOpen}>+ Add New</TertiaryButton>
+        </>}
+        </ResourceWrapper>
+        <ResourceWrapper
+          resource={videosResource}
+          loading={<VideosTableSkeleton />}
+          empty={<div>No videos found.</div>}
+          error={<div className="error">Failed to load videos.</div>}
+        >{(videos) => <VideoTable videos={videos} />}
+        </ResourceWrapper>
       </div>
     </main>
   );

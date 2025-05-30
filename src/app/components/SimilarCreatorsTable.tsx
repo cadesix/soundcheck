@@ -1,14 +1,7 @@
 import React from 'react';
 import Table, { TableColumn } from './Table';
 import styles from './Table.module.css';
-
-export interface SimilarCreator {
-  id: string;
-  creator_name: string;
-  creator_url?: string | null;
-  similar_artist_name: string;
-  image_url?: string | null;
-}
+import { SimilarCreator } from '../types/creator';
 
 interface SimilarCreatorsTableProps {
   similarCreators: SimilarCreator[];

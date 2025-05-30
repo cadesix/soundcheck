@@ -1,15 +1,7 @@
 import React from 'react'
 import Table, { TableColumn } from './Table'
 import styles from './Table.module.css'
-
-interface Creator {
-  id: string
-  creator_name: string
-  creator_url: string
-  email: string | null
-  num_followers?: number | null
-  image_url?: string
-}
+import { Creator } from '../types/creator';
 
 interface TopCreatorsTableProps {
   topCreators: Creator[]
