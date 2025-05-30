@@ -1,5 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import Sidebar from './components/Sidebar'
+import { ArtistProvider } from './context/ArtistContext'
 
 export const metadata: Metadata = {
   title: 'N8N Data Dashboard',
@@ -13,7 +15,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body style={{ margin: 0 }}>
+        <ArtistProvider>
+          <div style={{ display: 'flex', minHeight: '100vh' }}>
+            <Sidebar />
+            <main style={{ flex: 1, padding: '2rem' }}>{children}</main>
+          </div>
+        </ArtistProvider>
+      </body>
     </html>
   )
 }
