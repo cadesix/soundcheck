@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './InputModal.module.css';
 
 interface InputModalProps {
   open: boolean;
@@ -21,7 +22,7 @@ const InputModal: React.FC<InputModalProps> = ({
   loading = false,
   error = null,
   label = 'Submit a TikTok Creator URL',
-  placeholder = 'Paste TikTok creator URL here...'
+  placeholder = 'https://www.tiktok.com/@username'
 }) => {
   if (!open) return null;
 
@@ -36,25 +37,33 @@ const InputModal: React.FC<InputModalProps> = ({
   };
 
   return (
-    <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div className="modal-content" style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 320, boxShadow: '0 4px 24px rgba(0,0,0,0.12)' }}>
-        <h2 style={{ marginBottom: 16 }}>{label}</h2>
+    <div className={styles.backdrop}>
+      <div className={styles.content}>
         <form onSubmit={handleSubmit}>
           <input
             type="text"
             placeholder={placeholder}
             value={value}
             onChange={e => onChange(e.target.value)}
-            style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ececf1', marginBottom: 16 }}
+            className={styles.input}
             disabled={loading}
             autoFocus
           />
-          {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-            <button type="button" onClick={handleCancel} style={{ padding: '8px 18px', borderRadius: 6, border: '1px solid #ececf1', background: '#f3f4f6', color: '#18181b', cursor: 'pointer' }} disabled={loading}>
+          {error && <div className={styles.error}>{error}</div>}
+          <div className={styles.buttonContainer}>
+            <button 
+              type="button" 
+              onClick={handleCancel} 
+              className={`${styles.button} ${styles.cancelButton}`}
+              disabled={loading}
+            >
               Cancel
             </button>
-            <button type="submit" style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 500, cursor: 'pointer' }} disabled={loading}>
+            <button 
+              type="submit" 
+              className={`${styles.button} ${styles.submitButton}`}
+              disabled={loading}
+            >
               {loading ? 'Submitting...' : 'Submit'}
             </button>
           </div>

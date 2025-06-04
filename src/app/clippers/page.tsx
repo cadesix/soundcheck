@@ -68,6 +68,7 @@ export default function ClippersPage() {
           allVideos.push(...data.map((video: any) => ({
             ...video,
             thumbnail: video.thumbnail_url,
+            web_video_url: video.video_url,
             creator: video.creator,
           })));
         }
@@ -244,7 +245,6 @@ export default function ClippersPage() {
 
   return (
     <main className="container">
-      <h1 className="h1" style={{ marginBottom: 24 }}>Clippers</h1>
       <InputModal
         open={modalOpen}
         onClose={handleClose}
@@ -256,56 +256,58 @@ export default function ClippersPage() {
         label="Submit a TikTok Creator URL"
         placeholder="Paste TikTok creator URL here..."
       />
-      <div>
-        {videosResource.status === 'loaded' ? (
-          <ImpressionsStats
-            totalImpressions={totalImpressions}
-            impressionsThisWeek={impressionsThisWeek}
-          />
-        ) : (
-          <ImpressionsStatsSkeleton />
-        )}
-        <ResourceWrapper
-          resource={creatorsResource}
-          loading={<CreatorsTableSkeleton />}
-          empty={<div>No tracked creators found for this artist.</div>}
-          error={<div className="error">Failed to load creators.</div>}
-        >{(creators) => 
-          <TrackedCreatorsTable
-            creators={[
-              ...creators.map((creator: any) => {
-                const stats = getCreatorStats(creator.id);
-                return {
-                  id: creator.id,
-                  name: creator.name,
-                  profile_url: creator.profile_url,
-                  image_url: creator.image_url || null,
-                  num_videos: stats.num_videos,
-                  total_impressions: stats.total_impressions,
-                };
-              }),
-              ...pendingLinks.map(link => ({
-                id: link,
-                name: `Processing…`,
-                profile_url: link,
-                image_url: null,
-                num_videos: 0,
-                total_impressions: 0,
-                isPending: true,
-              }))
-            ]}
-          />
-        }
-        </ResourceWrapper>
-        <TertiaryButton onClick={handleOpen}>+ Add New</TertiaryButton>
-        <ResourceWrapper
-          resource={videosResource}
-          loading={<VideosTableSkeleton />}
-          empty={<div>No videos found.</div>}
-          error={<div className="error">Failed to load videos.</div>}
-        >{(videos) => <VideoTable videos={videos} />}
-        </ResourceWrapper>
-      </div>
+      
+      {videosResource.status === 'loaded' ? (
+        <ImpressionsStats
+          totalImpressions={totalImpressions}
+          impressionsThisWeek={impressionsThisWeek}
+        />
+      ) : (
+        <ImpressionsStatsSkeleton />
+      )}
+      
+      <ResourceWrapper
+        resource={creatorsResource}
+        loading={<CreatorsTableSkeleton />}
+        empty={<div>No tracked creators found for this artist.</div>}
+        error={<div className="error">Failed to load creators.</div>}
+      >{(creators) => 
+        <TrackedCreatorsTable
+          creators={[
+            ...creators.map((creator: any) => {
+              const stats = getCreatorStats(creator.id);
+              return {
+                id: creator.id,
+                name: creator.name,
+                profile_url: creator.profile_url,
+                image_url: creator.image_url || null,
+                num_videos: stats.num_videos,
+                total_impressions: stats.total_impressions,
+              };
+            }),
+            ...pendingLinks.map(link => ({
+              id: link,
+              name: `Processing…`,
+              profile_url: link,
+              image_url: null,
+              num_videos: 0,
+              total_impressions: 0,
+              isPending: true,
+            }))
+          ]}
+        />
+      }
+      </ResourceWrapper>
+      
+      <TertiaryButton onClick={handleOpen}>+ Add New</TertiaryButton>
+      
+      <ResourceWrapper
+        resource={videosResource}
+        loading={<VideosTableSkeleton />}
+        empty={<div>No videos found.</div>}
+        error={<div className="error">Failed to load videos.</div>}
+      >{(videos) => <VideoTable videos={videos} />}
+      </ResourceWrapper>
     </main>
   );
 } 

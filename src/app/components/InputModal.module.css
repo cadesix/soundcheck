@@ -1,0 +1,89 @@
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.content {
+  background: var(--color-white);
+  border-radius: 8px;
+  padding: 32px;
+  min-width: 320px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.title {
+  font: var(--text-h2);
+  color: var(--color-text-primary);
+  margin-bottom: 16px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-grey-border);
+  margin-bottom: 16px;
+  font: var(--text-p1);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input:focus {
+  border-color: var(--color-black);
+}
+
+.input:disabled {
+  background: var(--color-grey-utility);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.error {
+  color: #ef4444;
+  font: var(--text-meta);
+  margin-bottom: 12px;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.button {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font: var(--text-meta);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  border: none;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+.cancelButton {
+  border: 1px solid var(--color-grey-border);
+  background: var(--color-grey-divider);
+  color: var(--color-text-primary);
+}
+
+.submitButton {
+  background: var(--color-black);
+  color: var(--color-white);
+} 

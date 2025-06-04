@@ -11,16 +11,24 @@ const TertiaryButton: React.FC<TertiaryButtonProps> = ({ children, className, ..
       type="button"
       className={className}
       style={{
-        background: 'none',
         border: 'none',
-        color: '#2563eb',
-        fontWeight: 500,
-        fontSize: 15,
+        color: 'var(--color-grey-text)',
+        font: 'var(--text-meta)',
+        padding: '6px 12px',
+        borderRadius: '8px',
         cursor: 'pointer',
-        padding: 0,
-        marginBottom: 24,
-        marginLeft: 4,
-        display: 'inline',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        transition: 'opacity 0.15s ease',
+        alignSelf: 'flex-start',
+        width: 'fit-content',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.opacity = '0.8';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.opacity = '1';
       }}
       {...props}
     >

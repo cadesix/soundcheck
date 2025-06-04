@@ -23,9 +23,40 @@
   color: var(--color-black);
 }
 
+/* Skeleton styles for artist dropdown */
+.artistDropdownSkeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+}
+
+.skeletonCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-grey-skeleton);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .nav {
   width: 100%;
 }
+
 .navList {
   list-style: none;
   display: flex;
@@ -44,11 +75,31 @@
   border-radius: 6px;
   transition: background 0.15s, color 0.15s;
 }
+
+.linkContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
 .link:hover {
   background: var(--color-grey-utility);
-  color: #1100ff;
 }
+
+.link:hover .icon {
+  opacity: 1;
+}
+
 .active {
   color: var(--color-black);
   background: var(--color-grey-utility);
+}
+
+.active .icon {
+  opacity: 1;
 } 

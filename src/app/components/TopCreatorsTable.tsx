@@ -29,9 +29,9 @@ const columns: TableColumn<CreatorWithViews>[] = [
           <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#e9e9e9' }} />
         )}
         <span style={{ display: 'flex', flexDirection: 'column' }}>
-          <a href={row.creator_url} target="_blank" rel="noopener noreferrer" className={styles['data-table-link']}>
+          <span className={styles['data-table-link']}>
             {row.creator_name}
-          </a>
+          </span>
           <span className="meta">Meta placeholder</span>
         </span>
       </span>
@@ -74,7 +74,16 @@ const TopCreatorsTable: React.FC<TopCreatorsTableProps> = ({ topCreators }) => {
   }, [topCreators]);
 
   return (
-    <Table columns={columns} data={creatorsWithViews} title="Top Creators" />
+    <Table 
+      columns={columns} 
+      data={creatorsWithViews} 
+      title="Top Creators"
+      onRowClick={(creator) => {
+        if (creator.creator_url) {
+          window.open(creator.creator_url, '_blank');
+        }
+      }}
+    />
   )
 }
 

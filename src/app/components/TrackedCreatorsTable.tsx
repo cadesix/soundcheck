@@ -24,9 +24,9 @@ const columns: TableColumn<TrackedCreator>[] = [
         ) : (
           <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#e9e9e9' }} />
         )}
-        <a href={row.profile_url} target="_blank" rel="noopener noreferrer" className={styles['data-table-link']}>
+        <span className={styles['data-table-link']}>
           {row.name}
-        </a>
+        </span>
       </span>
     ),
   },
@@ -36,10 +36,18 @@ const columns: TableColumn<TrackedCreator>[] = [
 
 const TrackedCreatorsTable: React.FC<TrackedCreatorsTableProps> = ({ creators }) => {
   return (
-    <>
+    <div>
       <TableHeader title="Tracked Creators" />
-      <Table columns={columns} data={creators} />
-    </>
+      <Table 
+        columns={columns} 
+        data={creators}
+        onRowClick={(creator) => {
+          if (creator.profile_url) {
+            window.open(creator.profile_url, '_blank');
+          }
+        }}
+      />
+    </div>
   );
 };
 
