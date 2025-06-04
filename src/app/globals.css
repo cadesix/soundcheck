@@ -25,6 +25,11 @@
   --color-grey-utility: #e9e9e9;
   --color-grey-background: #f7f7f7;
   --color-grey-metadata: #7f7f7f;
+  --color-grey-border: #ececf1;
+  --color-grey-divider: #f3f4f6;
+  --color-grey-skeleton: #ececf1;
+  --color-text-primary: #18181b;
+  --color-text-secondary: #888;
   --color-black: #000000;
 
   --text-title: 900 40px 'ABCDiatype', sans-serif;

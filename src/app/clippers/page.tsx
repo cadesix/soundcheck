@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../../lib/supabase";
+import { useArtist } from "../context/ArtistContext";
 import InputModal from "../components/InputModal";
 import ImpressionsStats from "../components/ImpressionsStats";
 import VideoTable from "../components/VideoTable";
@@ -12,12 +13,8 @@ import CreatorsTableSkeleton from '../components/common/CreatorsTableSkeleton';
 import VideosTableSkeleton from '../components/common/VideosTableSkeleton';
 import ImpressionsStatsSkeleton from '../components/common/ImpressionsStatsSkeleton';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export default function ClippersPage() {
+  const { selectedArtistId, loading: artistLoading, error: artistError } = useArtist();
   const [modalOpen, setModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,17 +25,33 @@ export default function ClippersPage() {
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchCreators = async () => {
+    if (!selectedArtistId) {
+      setCreatorsResource({ status: 'empty' });
+      return;
+    }
+
     setCreatorsResource({ status: 'loading' });
     const { data, error } = await supabase
-      .from("creators")
-      .select("id, name, profile_url, image_url")
-      .eq("is_tracked", true);
+      .from("artist_clippers")
+      .select(`
+        id,
+        creator:creators!artist_clippers_creator_id_fkey (
+          id,
+          name,
+          profile_url,
+          image_url
+        )
+      `)
+      .eq("artist_id", selectedArtistId);
+    
     if (error) {
       setCreatorsResource({ status: 'error', error: error.message });
     } else if (!data || data.length === 0) {
       setCreatorsResource({ status: 'empty' });
     } else {
-      setCreatorsResource({ status: 'loaded', data });
+      // Transform the data to match the expected format
+      const creators = data.map((item: any) => item.creator);
+      setCreatorsResource({ status: 'loaded', data: creators });
     }
   };
 
@@ -70,7 +83,7 @@ export default function ClippersPage() {
   useEffect(() => {
     fetchCreators();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedArtistId]);
 
   useEffect(() => {
     if (creatorsResource.status === 'loaded') {
@@ -82,37 +95,75 @@ export default function ClippersPage() {
   }, [creatorsResource]);
 
   const handleSubmit = async () => {
+    if (!selectedArtistId) {
+      setError("Please select an artist first");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setPendingLinks(prev => [...prev, inputValue]);
+    
     const { error } = await supabase
       .from("user_input_links")
-      .insert([{ url: inputValue, type: "tiktok_link" }]);
+      .insert([{ 
+        url: inputValue, 
+        type: "tiktok_link",
+        artist_id: selectedArtistId 
+      }]);
+    
     setLoading(false);
     if (error) {
       setError(error.message);
+      setPendingLinks(prev => prev.filter(link => link !== inputValue));
     } else {
       setModalOpen(false);
       setInputValue("");
-      // fetchCreators(); // Don't fetch immediately, wait for polling
     }
   };
 
   // Polling logic for pending links
   useEffect(() => {
-    if (pendingLinks.length === 0) {
+    if (pendingLinks.length === 0 || !selectedArtistId) {
       if (pollingRef.current) clearInterval(pollingRef.current);
       return;
     }
     if (pollingRef.current) clearInterval(pollingRef.current);
     pollingRef.current = setInterval(async () => {
-      // Only poll for links in pendingLinks
+      // Check if any pending links have been processed into creators
       const { data: creatorsData } = await supabase
         .from('creators')
-        .select('*')
+        .select('id, profile_url')
         .in('profile_url', pendingLinks);
+      
       if (creatorsData && creatorsData.length > 0) {
-        setPendingLinks(prev => prev.filter(link => !creatorsData.some(c => c.profile_url === link)));
+        // Check if these creators are already linked to the current artist
+        const { data: existingLinks } = await supabase
+          .from('artist_clippers')
+          .select('creator_id')
+          .eq('artist_id', selectedArtistId)
+          .in('creator_id', creatorsData.map(c => c.id));
+        
+        const existingCreatorIds = new Set(existingLinks?.map(link => link.creator_id) || []);
+        
+        // Create links for new creators
+        const newCreators = creatorsData.filter(c => !existingCreatorIds.has(c.id));
+        if (newCreators.length > 0) {
+          await supabase
+            .from('artist_clippers')
+            .insert(
+              newCreators.map(creator => ({
+                artist_id: selectedArtistId,
+                creator_id: creator.id,
+                added_by: 'manual_input'
+              }))
+            );
+        }
+        
+        // Remove processed links from pending
+        const processedUrls = creatorsData.map(c => c.profile_url);
+        setPendingLinks(prev => prev.filter(link => !processedUrls.includes(link)));
+        
         // Refresh creators/videos data
         fetchCreators();
       }
@@ -120,7 +171,7 @@ export default function ClippersPage() {
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, [pendingLinks]);
+  }, [pendingLinks, selectedArtistId]);
 
   const handleOpen = () => {
     setModalOpen(true);
@@ -132,6 +183,17 @@ export default function ClippersPage() {
     setModalOpen(false);
     setError(null);
     setInputValue("");
+  };
+
+  // Calculate video counts and impressions per creator
+  const getCreatorStats = (creatorId: string) => {
+    if (videosResource.status !== 'loaded') return { num_videos: 0, total_impressions: 0 };
+    
+    const creatorVideos = videosResource.data.filter((v: any) => v.creator_id === creatorId);
+    const num_videos = creatorVideos.length;
+    const total_impressions = creatorVideos.reduce((sum: number, v: any) => sum + (v.num_views || 0), 0);
+    
+    return { num_videos, total_impressions };
   };
 
   // Aggregate impressions for all tracked creators
@@ -152,6 +214,33 @@ export default function ClippersPage() {
   };
 
   const { totalImpressions, impressionsThisWeek } = getAggregateImpressions();
+
+  if (artistLoading) {
+    return (
+      <main className="container">
+        <h1 className="h1" style={{ marginBottom: 24 }}>Clippers</h1>
+        <div className="loading">Loading artists...</div>
+      </main>
+    );
+  }
+
+  if (artistError) {
+    return (
+      <main className="container">
+        <h1 className="h1" style={{ marginBottom: 24 }}>Clippers</h1>
+        <div className="error">Error loading artists: {artistError}</div>
+      </main>
+    );
+  }
+
+  if (!selectedArtistId) {
+    return (
+      <main className="container">
+        <h1 className="h1" style={{ marginBottom: 24 }}>Clippers</h1>
+        <div className="error">Please select an artist to view clippers.</div>
+      </main>
+    );
+  }
 
   return (
     <main className="container">
@@ -179,20 +268,20 @@ export default function ClippersPage() {
         <ResourceWrapper
           resource={creatorsResource}
           loading={<CreatorsTableSkeleton />}
-          empty={<div>No tracked creators found.</div>}
+          empty={<div>No tracked creators found for this artist.</div>}
           error={<div className="error">Failed to load creators.</div>}
-        >{(creators) => <>
+        >{(creators) => 
           <TrackedCreatorsTable
             creators={[
               ...creators.map((creator: any) => {
-                // videosByCreator is not used anymore, so just pass 0 for videos
+                const stats = getCreatorStats(creator.id);
                 return {
                   id: creator.id,
                   name: creator.name,
                   profile_url: creator.profile_url,
                   image_url: creator.image_url || null,
-                  num_videos: 0,
-                  total_impressions: 0,
+                  num_videos: stats.num_videos,
+                  total_impressions: stats.total_impressions,
                 };
               }),
               ...pendingLinks.map(link => ({
@@ -206,9 +295,9 @@ export default function ClippersPage() {
               }))
             ]}
           />
-          <TertiaryButton onClick={handleOpen}>+ Add New</TertiaryButton>
-        </>}
+        }
         </ResourceWrapper>
+        <TertiaryButton onClick={handleOpen}>+ Add New</TertiaryButton>
         <ResourceWrapper
           resource={videosResource}
           loading={<VideosTableSkeleton />}

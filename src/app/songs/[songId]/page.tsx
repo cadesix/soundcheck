@@ -42,8 +42,8 @@ export default function SongDetailView() {
   return (
     <main className="container">
       <nav>
-        <Link href="/songs" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-          ← Back to Songs
+        <Link href="/songs" style={{ color: '#000000', textDecoration: 'none' }}>
+          ← Songs
         </Link>
       </nav>
       <h1 className="h1">{song.title}</h1>

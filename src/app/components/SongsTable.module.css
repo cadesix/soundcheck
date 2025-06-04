@@ -1,0 +1,60 @@
+/* Songs table specific styles - works with base Table component */
+.song-row-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.song-cover {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1.5px solid var(--color-grey-border);
+  background: var(--color-grey-divider);
+  flex-shrink: 0;
+}
+
+.song-cover-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--color-grey-skeleton);
+  flex-shrink: 0;
+}
+
+.song-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.song-title {
+  font: var(--text-p1);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-meta {
+  font: var(--text-meta);
+  color: var(--color-grey-metadata);
+}
+
+.song-video-count {
+  font: var(--text-p1);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.song-videos-col {
+  text-align: right;
+  width: 80px;
+} 

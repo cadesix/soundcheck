@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabase'
 import TopCreatorsTable from './components/TopCreatorsTable'
 import SongSummary from './components/SongSummary'
 import { useArtist } from './context/ArtistContext'
@@ -9,75 +9,10 @@ import VideoTable from './components/VideoTable'
 import ImpressionsStats from './components/ImpressionsStats'
 import Table from './components/Table'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 export default function Home() {
-  const { selectedArtistId, setSelectedArtistId, artists, setArtists } = useArtist();
+  const { selectedArtistId, artists, loading, error } = useArtist();
   const [selectedSongId, setSelectedSongId] = useState<string>('all')
   const [similarCreators, setSimilarCreators] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Fetch artists once and set in context
-  useEffect(() => {
-    const fetchArtists = async () => {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('artists')
-        .select(`
-          id,
-          name,
-          profile_url,
-          songs(
-            id,
-            title,
-            cover_url,
-            num_creates,
-            video_trend_analysis,
-            videos(
-              id,
-              tiktok_video_id,
-              video_url,
-              thumbnail_url,
-              date_posted,
-              num_likes,
-              num_views,
-              creator_id,
-              created_at,
-              creator:creators!videos_creator_id_fkey (
-                id,
-                name,
-                profile_url,
-                num_followers,
-                email,
-                date_last_posted
-              )
-            )
-          )
-        `)
-      if (error) {
-        setError(error.message)
-        setLoading(false)
-        return
-      }
-      setArtists(data || [])
-      // Set default artist and song (all songs)
-      if (data && data.length > 0 && !selectedArtistId) {
-        setSelectedArtistId(data[0].id)
-        setSelectedSongId('all')
-      }
-      setLoading(false)
-    }
-    if (artists.length === 0) {
-      fetchArtists()
-    } else {
-      setLoading(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   // Fetch similar creators using the Supabase RPC function
   useEffect(() => {
@@ -125,6 +60,7 @@ export default function Home() {
       (song.videos || []).map((video: any) => ({
         ...video,
         thumbnail: video.thumbnail_url,
+        web_video_url: video.video_url,
       }))
     );
   } else {
@@ -132,6 +68,7 @@ export default function Home() {
     videos = (selectedSong?.videos || []).map((video: any) => ({
       ...video,
       thumbnail: video.thumbnail_url,
+      web_video_url: video.video_url,
     }));
   }
 
@@ -161,6 +98,7 @@ export default function Home() {
       creator_url: c.profile_url,
       email: c.email,
       num_followers: c.num_followers,
+      image_url: c.image_url,
     }))
     .sort((a, b) => (b.num_followers || 0) - (a.num_followers || 0))
     .slice(0, 10); // Top 10 creators
@@ -171,11 +109,11 @@ export default function Home() {
         totalImpressions={totalImpressions}
         impressionsThisWeek={impressionsThisWeek}
       />
+      <VideoTable videos={videos} />
       <TopCreatorsTable topCreators={allCreators} />
       {selectedSongId !== 'all' && selectedSong && (
         <SongSummary summary={selectedSong.video_trend_analysis} />
       )}
-      <VideoTable videos={videos} />
     </main>
   )
 }

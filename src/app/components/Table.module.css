@@ -1,33 +1,47 @@
 .data-table-container {
-  background: #fff;
-  border: 1.5px solid #ececf1;
-  border-radius: 10px;
-  padding: 1.5rem 2rem;
+  background: var(--color-white);
+  border: 1.5px solid var(--color-grey-border);
+  border-radius: 8px;
   width: 100%;
+  overflow: hidden; /* Ensures content respects border radius */
 }
 .data-table-title {
-  font-weight: 600;
-  font-size: 1.15em;
-  color: #18181b;
+  font: var(--text-h2);
+  color: var(--color-text-primary);
 }
 .data-table {
   width: 100%;
   border-collapse: collapse;
 }
 .data-table th {
-  color: #888;
-  font-weight: 500;
-  font-size: 1em;
-  border-bottom: 1px solid #ececf1;
+  color: var(--color-text-secondary);
+  font: var(--text-p1);
+  border-bottom: 1px solid var(--color-grey-border);
   text-align: left;
-  padding: 0.5em 0;
+  padding: 0.75rem 2rem;
+}
+.data-table th:first-child {
+  padding-left: 2rem;
+}
+.data-table th:last-child {
+  padding-right: 2rem;
 }
 .data-table td {
-  padding: 0.5em 0;
-  color: #18181b;
+  padding: 0.75rem 2rem;
+  color: var(--color-text-primary);
+  font: var(--text-p1);
+}
+.data-table td:first-child {
+  padding-left: 2rem;
+}
+.data-table td:last-child {
+  padding-right: 2rem;
 }
 .data-table tr {
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-grey-divider);
+}
+.data-table tbody tr:last-child {
+  border-bottom: none;
 }
 .data-table-link {
   color: var(--color-black);
@@ -35,38 +49,41 @@
   font-weight: 500;
 }
 .data-table-link:hover {
-  color:#888
+  color: var(--color-text-secondary);
 }
 .data-table-name {
   font-weight: 500;
 }
 .data-table-th {
-  color: #888;
-  font-weight: 500;
-  font-size: 1em;
-  border-bottom: 1px solid #ececf1;
+  color: var(--color-text-secondary);
+  font: var(--text-p1);
+  border-bottom: 1px solid var(--color-grey-border);
   text-align: left;
-  padding: 0.5em 0;
+  padding: 0.75rem 2rem;
 }
 .data-table-td {
-  padding: 0.5em 0;
-  color: #18181b;
+  padding: 0.75rem 2rem;
+  color: var(--color-text-primary);
+  font: var(--text-p1);
 }
 .data-table-tr {
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-grey-divider);
 }
 .data-table-avatar-skeleton {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #ececf1;
+  background: var(--color-grey-skeleton);
 }
 .data-table-text-skeleton {
   width: 120px;
   height: 18px;
-  background: #ececf1;
+  background: var(--color-grey-skeleton);
   border-radius: 4px;
 }
 .data-table-row-clickable:hover {
-  background: #f3f4f6;
+  background: var(--color-grey-divider);
+}
+.data-table-videos-col {
+  text-align: right;
 } 
