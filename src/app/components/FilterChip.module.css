@@ -1,10 +1,43 @@
+.selectWrapper {
+  position: relative;
+  display: inline-block;
+  min-width: fit-content;
+}
+
 .chip-dropdown {
   background: var(--color-white);
   border: 1px solid var(--color-grey-utility);
   color: var(--color-black);
   font: var(--text-p1);
   border-radius: 96px;
-  padding: 0.3rem 0rem 0.3rem 0.75rem;
+  padding: 0.3rem 1.75rem 0.3rem 0.75rem;
   outline: none;
   cursor: pointer;
+  
+  /* Hide default browser arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  width: auto;
+  min-width: 80px;
+}
+
+.chip-dropdown::-ms-expand {
+  display: none;
+}
+
+.chevron {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-black);
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.selectWrapper:hover .chevron {
+  opacity: 1;
 } 

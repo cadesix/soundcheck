@@ -37,7 +37,7 @@ const columns: TableColumn<TrackedCreator>[] = [
 const TrackedCreatorsTable: React.FC<TrackedCreatorsTableProps> = ({ creators }) => {
   return (
     <div>
-      <TableHeader title="Tracked Creators" />
+      <TableHeader title="Tracked Fanpages" />
       <Table 
         columns={columns} 
         data={creators}

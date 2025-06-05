@@ -18,13 +18,16 @@ const SidebarHeaderSkeleton: React.FC = () => (
     <div className={styles.artistDropdownSkeleton}>
       <div className={styles.skeletonCircle} />
     </div>
-    <div className={`${styles.logo} title`}>SoundTrack</div>
+    <div className={`${styles.logo} title`}>Loading...</div>
   </div>
 );
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { artists, loading } = useArtist();
+  const { artists, loading, selectedArtistId } = useArtist();
+  
+  // Find the selected artist
+  const selectedArtist = artists.find(a => a.id === selectedArtistId);
   
   return (
     <aside className={styles.sidebar}>
@@ -34,7 +37,9 @@ export default function Sidebar() {
       ) : (
         <div className={styles.header}>
           {artists.length > 0 && <ArtistDropdown />}
-          <div className={`${styles.logo} title`}>SoundTrack</div>
+          <div className={`${styles.logo} title`}>
+            {selectedArtist?.name || 'Select Artist'}
+          </div>
         </div>
       )}
       
